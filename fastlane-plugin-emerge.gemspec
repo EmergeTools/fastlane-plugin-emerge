@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.author        = 'Emerge Tools, Inc'
 
   spec.summary       = 'Fastlane plugin for Emerge'
-  # spec.homepage      = "https://github.com/<GITHUB_USERNAME>/fastlane-plugin-emerge"
+  spec.homepage      = "https://github.com/EmergeTools/fastlane-plugin-emerge"
   spec.license       = "MIT"
 
   spec.files         = Dir["lib/**/*"] + %w(README.md LICENSE)
