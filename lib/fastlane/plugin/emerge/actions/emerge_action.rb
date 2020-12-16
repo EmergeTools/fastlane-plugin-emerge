@@ -7,6 +7,10 @@ module Fastlane
       def self.run(params)
         api_token = params[:api_token]
         file_path = params[:file_path]
+        pr_number = params[:pr_number]
+        build_id = params[:build_id]
+        base_build_id = params[:base_build_id]
+        repo_name = params[:repo_name]
         if !File.exist?(file_path) || !File.extname(file_path) == '.zip'
           UI.error("Invalid input file")
           return
@@ -14,7 +18,22 @@ module Fastlane
 
         fileName = File.basename(file_path)
         url = 'https://2b32vitohk.execute-api.us-west-1.amazonaws.com/getUpload'
-        resp = Faraday.get(url, {fileName: fileName}, {'X-API-Token' => api_token})
+        params = {
+          fileName: fileName,
+        }
+        if pr_number
+          params[:prNumber] = pr_number
+        end
+        if build_id
+          params[:buildId] = build_id
+        end
+        if base_build_id
+          params[:baseBuildId] = base_build_id
+        end
+        if repo_name
+          params[:repoName] = repo_name
+        end
+        resp = Faraday.get(url, params, {'X-API-Token' => api_token})
         case resp.status
         when 200
           json = JSON.parse(resp.body)
@@ -56,6 +75,22 @@ module Fastlane
                                   env_name: "EMERGE_FILE_PATH",
                                description: "Path to the zipped xcarchive or app to upload",
                                   optional: false,
+                                      type: String),
+          FastlaneCore::ConfigItem.new(key: :pr_number,
+                               description: "The PR number that triggered this upload",
+                                  optional: true,
+                                      type: String),
+          FastlaneCore::ConfigItem.new(key: :build_id,
+                               description: "A string to identify this build",
+                                  optional: true,
+                                      type: String),
+          FastlaneCore::ConfigItem.new(key: :base_build_id,
+                               description: "Id of the build to compare with this upload",
+                                  optional: true,
+                                      type: String),
+          FastlaneCore::ConfigItem.new(key: :repo_name,
+                               description: "Full name of the respository this upload was triggered from. For example: EmergeTools/Emerge",
+                                  optional: true,
                                       type: String)
         ]
       end
