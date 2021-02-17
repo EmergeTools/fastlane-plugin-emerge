@@ -11,13 +11,14 @@ module Fastlane
         build_id = params[:build_id]
         base_build_id = params[:base_build_id]
         repo_name = params[:repo_name]
+        build_type = params[:build_type]
         if !File.exist?(file_path) || !File.extname(file_path) == '.zip'
           UI.error("Invalid input file")
           return
         end
 
         fileName = File.basename(file_path)
-        url = 'https://2b32vitohk.execute-api.us-west-1.amazonaws.com/getUpload'
+        url = 'https://api.emergetools.com/getUpload'
         params = {
           fileName: fileName,
         }
@@ -33,6 +34,7 @@ module Fastlane
         if repo_name
           params[:repoName] = repo_name
         end
+        params[:buildType] = build_type || "development"
         resp = Faraday.get(url, params, {'X-API-Token' => api_token})
         case resp.status
         when 200
@@ -90,6 +92,10 @@ module Fastlane
                                       type: String),
           FastlaneCore::ConfigItem.new(key: :repo_name,
                                description: "Full name of the respository this upload was triggered from. For example: EmergeTools/Emerge",
+                                  optional: true,
+                                      type: String),
+          FastlaneCore::ConfigItem.new(key: :build_type,
+                               description: "Type of build, either release or development. Defaults to development",
                                   optional: true,
                                       type: String)
         ]
