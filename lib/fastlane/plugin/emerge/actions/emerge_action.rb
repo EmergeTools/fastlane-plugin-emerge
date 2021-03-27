@@ -1,4 +1,5 @@
 require 'fastlane/action'
+require 'fastlane_core/print_table'
 require_relative '../helper/emerge_helper'
 
 module Fastlane
@@ -35,6 +36,10 @@ module Fastlane
           params[:repoName] = repo_name
         end
         params[:buildType] = build_type || "development"
+        FastlaneCore::PrintTable.print_values(
+          config: params,
+          hide_keys: [],
+          title: "Summary for Emerge #{Fastlane::Emerge::VERSION}")
         resp = Faraday.get(url, params, {'X-API-Token' => api_token})
         case resp.status
         when 200
@@ -42,8 +47,12 @@ module Fastlane
           upload_id = json["upload_id"]
           upload_url = json["uploadURL"]
           Helper::EmergeHelper.perform_upload(upload_url, upload_id, file_path)
-        when 400...500
+        when 403
           UI.error("Invalid API token")
+        when 400
+          UI.error("Invalid parameters")
+          json = JSON.parse(resp.body)
+          UI.error("Error: #{json["errorMessage"]}")
         else
           UI.error("Upload failed")
         end
