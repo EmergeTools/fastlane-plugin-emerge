@@ -1,19 +1,59 @@
 require 'fastlane/action'
 require 'fastlane_core/print_table'
 require_relative '../helper/emerge_helper'
+require 'pathname'
+require 'tmpdir'
+require 'fileutils'
 
 module Fastlane
   module Actions
     class EmergeAction < Action
       def self.run(params)
         api_token = params[:api_token]
-        file_path = params[:file_path]
+        file_path = params[:file_path] || lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+
+        if file_path == nil
+          file_path = Dir.glob("#{lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]}/Build/Products/Debug-iphonesimulator/*.app").first
+        end
         pr_number = params[:pr_number]
         build_id = params[:build_id]
         base_build_id = params[:base_build_id]
         repo_name = params[:repo_name]
         build_type = params[:build_type]
-        if !File.exist?(file_path) || !File.extname(file_path) == '.zip'
+
+        if !File.exist?(file_path)
+          UI.error("Invalid input file")
+          return
+        end
+
+        # If the user provided a .app we will look for dsyms and package it into a zipped xcarchive
+        if File.extname(file_path) == '.app'
+          absolute_path = Pathname.new(File.expand_path(file_path))
+          UI.message("A .app was provided, dSYMs will be looked for in #{absolute_path.dirname}")
+          Dir.mktmpdir do |d|
+            application_folder = "#{d}/archive.xcarchive/Products/Applications/"
+            dsym_folder = "#{d}/archive.xcarchive/dSYMs/"
+            FileUtils.mkdir_p application_folder
+            FileUtils.mkdir_p dsym_folder
+            FileUtils.cp_r(file_path, application_folder)
+            Dir.glob("#{absolute_path.dirname}/*/*.dsym") do |filename|
+              UI.message("Found dSYM: #{Pathname.new(filename).basename}")
+              FileUtils.cp_r(filename, dsym_folder)
+            end
+            Xcodeproj::Plist.write_to_path({"NAME" => "Emerge Upload"}, "#{d}/archive.xcarchive/Info.plist")
+            file_path = "#{absolute_path.dirname}/archive.xcarchive.zip"
+            ZipAction.run(
+              path: "#{d}/archive.xcarchive",
+              output_path: file_path)
+            UI.message("Archive generated at #{file_path}")
+          end
+        elsif File.extname(file_path) == '.xcarchive'
+          zip_path = file_path + ".zip"
+          Actions::ZipAction.run(
+            path: file_path,
+            output_path: zip_path)
+          file_path = zip_path
+        elsif !File.extname(file_path) == '.zip'
           UI.error("Invalid input file")
           return
         end
@@ -85,7 +125,7 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :file_path,
                                   env_name: "EMERGE_FILE_PATH",
                                description: "Path to the zipped xcarchive or app to upload",
-                                  optional: false,
+                                  optional: true,
                                       type: String),
           FastlaneCore::ConfigItem.new(key: :pr_number,
                                description: "The PR number that triggered this upload",
