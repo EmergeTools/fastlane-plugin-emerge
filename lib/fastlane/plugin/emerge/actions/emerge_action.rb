@@ -19,6 +19,7 @@ module Fastlane
         build_id = params[:build_id]
         base_build_id = params[:base_build_id]
         repo_name = params[:repo_name]
+        gitlab_project_id = params[:gitlab_project_id]
         build_type = params[:build_type]
 
         if !File.exist?(file_path)
@@ -74,6 +75,9 @@ module Fastlane
         end
         if repo_name
           params[:repoName] = repo_name
+        end
+        if gitlab_project_id
+          params[:gitlabProjectId] = gitlab_project_id
         end
         params[:buildType] = build_type || "development"
         FastlaneCore::PrintTable.print_values(
@@ -143,6 +147,10 @@ module Fastlane
                                description: "Full name of the respository this upload was triggered from. For example: EmergeTools/Emerge",
                                   optional: true,
                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :gitlab_project_id,
+                               description: "Id of the gitlab project this upload was triggered from",
+                                  optional: true,
+                                      type: Integer),
           FastlaneCore::ConfigItem.new(key: :build_type,
                                description: "Type of build, either release or development. Defaults to development",
                                   optional: true,
