@@ -37,10 +37,8 @@ module Fastlane
             FileUtils.mkdir_p application_folder
             FileUtils.mkdir_p dsym_folder
             FileUtils.cp_r(file_path, application_folder)
-            Dir.glob("#{absolute_path.dirname}/*/*.dsym") do |filename|
-              UI.message("Found dSYM: #{Pathname.new(filename).basename}")
-              FileUtils.cp_r(filename, dsym_folder)
-            end
+            copy_dsyms("#{absolute_path.dirname}/*.dsym", dsym_folder)
+            copy_dsyms("#{absolute_path.dirname}/*/*.dsym", dsym_folder)
             Xcodeproj::Plist.write_to_path({"NAME" => "Emerge Upload"}, "#{d}/archive.xcarchive/Info.plist")
             file_path = "#{absolute_path.dirname}/archive.xcarchive.zip"
             ZipAction.run(
@@ -99,6 +97,13 @@ module Fastlane
           UI.error("Error: #{json["errorMessage"]}")
         else
           UI.error("Upload failed")
+        end
+      end
+
+      def self.copy_dsyms(from, to)
+        Dir.glob(from) do |filename|
+          UI.message("Found dSYM: #{Pathname.new(filename).basename}")
+          FileUtils.cp_r(filename, to)
         end
       end
 
