@@ -43,14 +43,18 @@ module Fastlane
             file_path = "#{absolute_path.dirname}/archive.xcarchive.zip"
             ZipAction.run(
               path: "#{d}/archive.xcarchive",
-              output_path: file_path)
+              output_path: file_path,
+              exclude: [],
+              include: [])
             UI.message("Archive generated at #{file_path}")
           end
         elsif File.extname(file_path) == '.xcarchive'
           zip_path = file_path + ".zip"
           Actions::ZipAction.run(
             path: file_path,
-            output_path: zip_path)
+            output_path: zip_path,
+            exclude: [],
+            include: [])
           file_path = zip_path
         elsif !File.extname(file_path) == '.zip'
           UI.error("Invalid input file")
