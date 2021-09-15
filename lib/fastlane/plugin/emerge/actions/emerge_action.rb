@@ -3,6 +3,7 @@ require 'fastlane_core/print_table'
 require_relative '../helper/emerge_helper'
 require 'pathname'
 require 'tmpdir'
+require 'json'
 require 'fileutils'
 
 module Fastlane
@@ -16,13 +17,14 @@ module Fastlane
           file_path = Dir.glob("#{lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]}/Build/Products/Debug-iphonesimulator/*.app").first
         end
         pr_number = params[:pr_number]
-        build_id = params[:build_id]
-        base_build_id = params[:base_build_id]
+        branch = params[:branch]
+        sha = params[:sha] || params[:build_id]
+        base_sha = params[:base_sha] || params[:base_build_id]
         repo_name = params[:repo_name]
         gitlab_project_id = params[:gitlab_project_id]
         build_type = params[:build_type]
 
-        if !File.exist?(file_path)
+        if file_path == nil || !File.exist?(file_path)
           UI.error("Invalid input file")
           return
         end
@@ -61,19 +63,22 @@ module Fastlane
           return
         end
 
-        fileName = File.basename(file_path)
-        url = 'https://api.emergetools.com/getUpload'
+        filename = File.basename(file_path)
+        url = 'https://api.emergetools.com/upload'
         params = {
-          fileName: fileName,
+          filename: filename,
         }
         if pr_number
           params[:prNumber] = pr_number
         end
-        if build_id
-          params[:buildId] = build_id
+        if branch
+          params[:branch] = branch
         end
-        if base_build_id
-          params[:baseBuildId] = base_build_id
+        if sha
+          params[:sha] = sha
+        end
+        if base_sha
+          params[:baseSha] = base_sha
         end
         if repo_name
           params[:repoName] = repo_name
@@ -86,7 +91,7 @@ module Fastlane
           config: params,
           hide_keys: [],
           title: "Summary for Emerge #{Fastlane::Emerge::VERSION}")
-        resp = Faraday.get(url, params, {'X-API-Token' => api_token})
+        resp = Faraday.post(url, params.to_json, {'Content-Type' => 'application/json', 'X-API-Token' => api_token})
         case resp.status
         when 200
           json = JSON.parse(resp.body)
@@ -144,12 +149,26 @@ module Fastlane
                                description: "The PR number that triggered this upload",
                                   optional: true,
                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :branch,
+                              description: "The current git branch",
+                                optional: true,
+                                    type: String),
+          FastlaneCore::ConfigItem.new(key: :sha,
+                              description: "The git SHA that triggered this build",
+                                optional: true,
+                                    type: String),
+          FastlaneCore::ConfigItem.new(key: :base_sha,
+                               description: "The git SHA of the base build. This parameter does not need to be set if you’re using the Github integration",
+                                  optional: true,
+                                      type: String),
           FastlaneCore::ConfigItem.new(key: :build_id,
                                description: "A string to identify this build",
+                                deprecated: "Replaced by `sha`",
                                   optional: true,
                                       type: String),
           FastlaneCore::ConfigItem.new(key: :base_build_id,
                                description: "Id of the build to compare with this upload",
+                                deprecated: "Replaced by `base_sha`",
                                   optional: true,
                                       type: String),
           FastlaneCore::ConfigItem.new(key: :repo_name,
@@ -161,7 +180,7 @@ module Fastlane
                                   optional: true,
                                       type: Integer),
           FastlaneCore::ConfigItem.new(key: :build_type,
-                               description: "Type of build, either release or development. Defaults to development",
+                               description: "String to identify the type of build such as release/development. Used to filter size graphs. Defaults to development",
                                   optional: true,
                                       type: String)
         ]
