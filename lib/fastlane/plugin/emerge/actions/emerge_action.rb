@@ -10,6 +10,7 @@ module Fastlane
   module Actions
     class EmergeAction < Action
       def self.run(params)
+        exit 1
         api_token = params[:api_token]
         file_path = params[:file_path] || lane_context[SharedValues::XCODEBUILD_ARCHIVE]
 
