@@ -21,12 +21,9 @@ module Fastlane
         sha = params[:sha] || params[:build_id]
         base_sha = params[:base_sha] || params[:base_build_id]
         unless base_sha
-          merge_info = `git show --pretty=raw #{branch}`
-          raise "git command failed" unless $?.success?
-          parents = merge_info.split("\n").map do |line|
-            line.match(/^parent (.*)/)
-            next nil unless match
-            match[1]
+          parent_merge_shas = ["1", "2"].map do |n|
+            merge_sha = `git rev-parse head^#{n}`.chomp
+            $?.success? ? merge_sha : nil
           end.compact
           raise "expected merge commit of two parents, one of which being the given sha" unless parents.size == 2 && parents.include?(sha)
           puts "inferring base sha of #{base_sha}"
