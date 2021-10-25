@@ -10,7 +10,6 @@ module Fastlane
   module Actions
     class EmergeAction < Action
       def self.run(params)
-        exit 1
         api_token = params[:api_token]
         file_path = params[:file_path] || lane_context[SharedValues::XCODEBUILD_ARCHIVE]
 
@@ -21,9 +20,22 @@ module Fastlane
         branch = params[:branch]
         sha = params[:sha] || params[:build_id]
         base_sha = params[:base_sha] || params[:base_build_id]
+        unless base_sha
+          merge_info = `git show --pretty=raw #{branch}`
+          raise "git command failed" unless $?.success?
+          parents = merge_info.split("\n").map do |line|
+            line.match(/^parent (.*)/)
+            next nil unless match
+            match[1]
+          end.compact
+          raise "expected merge commit of two parents, one of which being the given sha" unless parents.size == 2 && parents.include?(sha)
+          puts "inferring base sha of #{base_sha}"
+          base_sha = (parents - [sha]).first
+        end
         repo_name = params[:repo_name]
         gitlab_project_id = params[:gitlab_project_id]
         build_type = params[:build_type]
+        puts "sha: #{sha}"
 
         if file_path == nil || !File.exist?(file_path)
           UI.error("Invalid input file")

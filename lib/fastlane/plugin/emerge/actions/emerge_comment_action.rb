@@ -11,6 +11,7 @@ module Fastlane
         gitlab_url = params[:gitlab_url]
         project_id = params[:gitlab_project_id]
         pr_number = params[:pr_number]
+
         gitlab_access_token = params[:gitlab_access_token]
         
         requestParams = {
