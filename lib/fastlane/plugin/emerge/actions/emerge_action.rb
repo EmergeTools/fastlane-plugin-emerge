@@ -38,6 +38,13 @@ module Fastlane
             dsym_folder = "#{d}/archive.xcarchive/dSYMs/"
             FileUtils.mkdir_p application_folder
             FileUtils.mkdir_p dsym_folder
+            if params[:linkmaps] && params[:linkmaps].length > 0
+              linkmap_folder = "#{d}/archive.xcarchive/Linkmaps/"
+              FileUtils.mkdir_p(linkmap_folder)
+              params[:linkmaps].each do |l|
+                FileUtils.cp(l, linkmap_folder)
+              end
+            end
             FileUtils.cp_r(file_path, application_folder)
             copy_dsyms("#{absolute_path.dirname}/*.dsym", dsym_folder)
             copy_dsyms("#{absolute_path.dirname}/*/*.dsym", dsym_folder)
@@ -52,12 +59,21 @@ module Fastlane
           end
         elsif File.extname(file_path) == '.xcarchive'
           zip_path = file_path + ".zip"
+          if params[:linkmaps] && params[:linkmaps].length > 0
+            linkmap_folder = "#{file_path}/Linkmaps/"
+            FileUtils.mkdir_p(linkmap_folder)
+            params[:linkmaps].each do |l|
+              FileUtils.cp(l, linkmap_folder)
+            end
+          end
           Actions::ZipAction.run(
             path: file_path,
             output_path: zip_path,
             exclude: [],
             include: [])
           file_path = zip_path
+        elsif File.extname(file_path) == '.zip' && params[:linkmaps] && params[:linkmaps].length > 0
+          UI.error("Provided zipped archive and linkmaps, linkmaps will not be added to zip.")
         elsif !File.extname(file_path) == '.zip'
           UI.error("Invalid input file")
           return
@@ -145,6 +161,10 @@ module Fastlane
                                description: "Path to the zipped xcarchive or app to upload",
                                   optional: true,
                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :linkmaps,
+                                   description: "List of paths to linkmaps",
+                                      optional: true,
+                                          type: Array),
           FastlaneCore::ConfigItem.new(key: :pr_number,
                                description: "The PR number that triggered this upload",
                                   optional: true,
