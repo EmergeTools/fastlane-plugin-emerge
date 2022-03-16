@@ -7,7 +7,8 @@ module Fastlane
   module Actions
     class EmergeOrderFileAction < Action
       def self.run(params)
-        resp = Faraday.get("https://order-files-prod.emergetools.com/#{params[:app_id]}", nil, {'X-API-Token' => params[:api_token]})
+        puts "https://order-files-prod.emergetools.com/#{params[:app_id]}/#{params[:order_file_version]}"
+        resp = Faraday.get("https://order-files-prod.emergetools.com/#{params[:app_id]}/#{params[:order_file_version]}", nil, {'X-API-Token' => params[:api_token]})
         case resp.status
         when 200
           Tempfile.create do |f|
@@ -53,7 +54,11 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :output_path,
                                    description: "Path to the order file",
                                       optional: false,
-                                          type: String)
+                                          type: String),
+          FastlaneCore::ConfigItem.new(key: :order_file_version,
+                               description: "Version of the order file to download",
+                                  optional: false,
+                                      type: String),
         ]
       end
 
