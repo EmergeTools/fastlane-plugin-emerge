@@ -23,6 +23,7 @@ module Fastlane
         repo_name = params[:repo_name]
         gitlab_project_id = params[:gitlab_project_id]
         build_type = params[:build_type]
+        order_file_version = params[:order_file_version]
 
         if file_path == nil || !File.exist?(file_path)
           UI.error("Invalid input file")
@@ -101,6 +102,9 @@ module Fastlane
         end
         if gitlab_project_id
           params[:gitlabProjectId] = gitlab_project_id
+        end
+        if order_file_version
+          params[:orderFileVersion] = order_file_version
         end
         params[:buildType] = build_type || "development"
         FastlaneCore::PrintTable.print_values(
@@ -202,7 +206,11 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :build_type,
                                description: "String to identify the type of build such as release/development. Used to filter size graphs. Defaults to development",
                                   optional: true,
-                                      type: String)
+                                      type: String),
+          FastlaneCore::ConfigItem.new(key: :order_file_version,
+                               description: "Version of the order file to download",
+                                  optional: true,
+                                      type: String),
         ]
       end
 
