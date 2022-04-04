@@ -182,7 +182,7 @@ module Fastlane
                                 optional: true,
                                     type: String),
           FastlaneCore::ConfigItem.new(key: :base_sha,
-                               description: "The git SHA of the base build. This parameter does not need to be set if you’re using the Github integration",
+                               description: "The git SHA of the base build",
                                   optional: true,
                                       type: String),
           FastlaneCore::ConfigItem.new(key: :build_id,
