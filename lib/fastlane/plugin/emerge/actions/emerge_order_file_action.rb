@@ -16,13 +16,20 @@ module Fastlane
             decompressed = IO.popen(['gunzip', '-c', f.path]).read
             IO.write(params[:output_path], decompressed)
           end
+          return 200
         when 401
           UI.error("Unauthorized")
+        when 403
+          UI.message("No order file found, this is expected for the first build of an app_id/version.")
+          # The API will return a 403 when no order file is found, but we change that to a 200 for the
+          # fastlane plugin because this is an expected state for a CI integraion.
+          return 200
         else
           UI.error("Failed to download order file code: #{resp.status}")
         end
-
+        resp.status
       end
+
       def self.description
         "Fastlane plugin to download order files"
       end
