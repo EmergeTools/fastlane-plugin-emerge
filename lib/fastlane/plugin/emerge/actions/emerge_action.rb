@@ -47,10 +47,7 @@ module Fastlane
                 FileUtils.cp(l, linkmap_folder)
               end
             end
-            if config_path != nil && File.exist?(config_path)
-              emerge_config_path = "#{d}/archive.xcarchive/emerge_config.yaml"
-              FileUtils.cp(config_path, emerge_config_path)
-            end
+            copy_config(config_path, "#{d}/archive.xcarchive")
             FileUtils.cp_r(file_path, application_folder)
             copy_dsyms("#{absolute_path.dirname}/*.dsym", dsym_folder)
             copy_dsyms("#{absolute_path.dirname}/*/*.dsym", dsym_folder)
@@ -72,6 +69,7 @@ module Fastlane
               FileUtils.cp(l, linkmap_folder)
             end
           end
+          copy_config(config_path, file_path)
           Actions::ZipAction.run(
             path: file_path,
             output_path: zip_path,
@@ -138,6 +136,13 @@ module Fastlane
         Dir.glob(from) do |filename|
           UI.message("Found dSYM: #{Pathname.new(filename).basename}")
           FileUtils.cp_r(filename, to)
+        end
+      end
+
+      def self.copy_config(config_path, tmp_dir)
+        if config_path != nil && File.exist?(config_path)
+          emerge_config_path = "#{tmp_dir}/emerge_config.yaml"
+          FileUtils.cp(config_path, emerge_config_path)
         end
       end
 
