@@ -24,6 +24,7 @@ module Fastlane
         gitlab_project_id = params[:gitlab_project_id]
         build_type = params[:build_type]
         order_file_version = params[:order_file_version]
+        config_path = params[:config_path]
 
         if file_path == nil || !File.exist?(file_path)
           UI.error("Invalid input file")
@@ -46,6 +47,7 @@ module Fastlane
                 FileUtils.cp(l, linkmap_folder)
               end
             end
+            copy_config(config_path, "#{d}/archive.xcarchive")
             FileUtils.cp_r(file_path, application_folder)
             copy_dsyms("#{absolute_path.dirname}/*.dsym", dsym_folder)
             copy_dsyms("#{absolute_path.dirname}/*/*.dsym", dsym_folder)
@@ -67,6 +69,7 @@ module Fastlane
               FileUtils.cp(l, linkmap_folder)
             end
           end
+          copy_config(config_path, file_path)
           Actions::ZipAction.run(
             path: file_path,
             output_path: zip_path,
@@ -133,6 +136,13 @@ module Fastlane
         Dir.glob(from) do |filename|
           UI.message("Found dSYM: #{Pathname.new(filename).basename}")
           FileUtils.cp_r(filename, to)
+        end
+      end
+
+      def self.copy_config(config_path, tmp_dir)
+        if config_path != nil && File.exist?(config_path)
+          emerge_config_path = "#{tmp_dir}/emerge_config.yaml"
+          FileUtils.cp(config_path, emerge_config_path)
         end
       end
 
@@ -209,6 +219,10 @@ module Fastlane
                                       type: String),
           FastlaneCore::ConfigItem.new(key: :order_file_version,
                                description: "Version of the order file to download",
+                                  optional: true,
+                                      type: String),
+          FastlaneCore::ConfigItem.new(key: :config_path,
+                               description: "Path to Emerge config path",
                                   optional: true,
                                       type: String),
         ]
