@@ -221,6 +221,10 @@ module Fastlane
                                description: "Version of the order file to download",
                                   optional: true,
                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :config_path,
+                               description: "Path to Emerge config path",
+                                  optional: true,
+                                      type: String),
         ]
       end
 
