@@ -24,6 +24,7 @@ module Fastlane
         gitlab_project_id = params[:gitlab_project_id]
         build_type = params[:build_type]
         order_file_version = params[:order_file_version]
+        config_path = params[:config_path]
 
         if file_path == nil || !File.exist?(file_path)
           UI.error("Invalid input file")
@@ -45,6 +46,10 @@ module Fastlane
               params[:linkmaps].each do |l|
                 FileUtils.cp(l, linkmap_folder)
               end
+            end
+            if config_path != nil && File.exist?(config_path)
+              emerge_config_path = "#{d}/archive.xcarchive/emerge_config.yaml"
+              FileUtils.cp(config_path, emerge_config_path)
             end
             FileUtils.cp_r(file_path, application_folder)
             copy_dsyms("#{absolute_path.dirname}/*.dsym", dsym_folder)
