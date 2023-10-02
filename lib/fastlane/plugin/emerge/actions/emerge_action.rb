@@ -140,10 +140,16 @@ module Fastlane
       end
 
       def self.copy_config(config_path, tmp_dir)
-        if config_path != nil && File.exist?(config_path)
-          emerge_config_path = "#{tmp_dir}/emerge_config.yaml"
-          FileUtils.cp(config_path, emerge_config_path)
+        return unless config_path != nil
+
+        expanded_path = File.expand_path(config_path)
+        if not File.exist?(expanded_path)
+          UI.error("No config file found at path '#{expanded_path}'.\nUploading without config file")
+          return
         end
+
+        emerge_config_path = "#{tmp_dir}/emerge_config.yaml"
+        FileUtils.cp(expanded_path, emerge_config_path)
       end
 
       def self.description
