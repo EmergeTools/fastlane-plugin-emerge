@@ -78,7 +78,7 @@ module Fastlane
           file_path = zip_path
         elsif File.extname(file_path) == '.zip' && params[:linkmaps] && params[:linkmaps].length > 0
           UI.error("Provided zipped archive and linkmaps, linkmaps will not be added to zip.")
-        elsif File.extname(file_path) != '.zip'
+        elsif !File.extname(file_path) == '.zip'
           UI.error("Invalid input file")
           return
         end
