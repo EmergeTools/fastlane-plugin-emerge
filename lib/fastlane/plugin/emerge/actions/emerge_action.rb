@@ -13,7 +13,7 @@ module Fastlane
         api_token = params[:api_token]
         file_path = params[:file_path] || lane_context[SharedValues::XCODEBUILD_ARCHIVE]
 
-        if file_path == nil
+        if file_path.nil?
           file_path = Dir.glob("#{lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]}/Build/Products/Debug-iphonesimulator/*.app").first
         end
         pr_number = params[:pr_number]
@@ -22,11 +22,11 @@ module Fastlane
         base_sha = params[:base_sha] || params[:base_build_id]
         repo_name = params[:repo_name]
         gitlab_project_id = params[:gitlab_project_id]
-        build_type = params[:build_type]
+        tag = params[:tag]
         order_file_version = params[:order_file_version]
         config_path = params[:config_path]
 
-        if file_path == nil || !File.exist?(file_path)
+        if file_path.nil? || !File.exist?(file_path)
           UI.error("Invalid input file")
           return
         end
@@ -38,8 +38,8 @@ module Fastlane
           Dir.mktmpdir do |d|
             application_folder = "#{d}/archive.xcarchive/Products/Applications/"
             dsym_folder = "#{d}/archive.xcarchive/dSYMs/"
-            FileUtils.mkdir_p application_folder
-            FileUtils.mkdir_p dsym_folder
+            FileUtils.mkdir_p(application_folder)
+            FileUtils.mkdir_p(dsym_folder)
             if params[:linkmaps] && params[:linkmaps].length > 0
               linkmap_folder = "#{d}/archive.xcarchive/Linkmaps/"
               FileUtils.mkdir_p(linkmap_folder)
@@ -51,13 +51,14 @@ module Fastlane
             FileUtils.cp_r(file_path, application_folder)
             copy_dsyms("#{absolute_path.dirname}/*.dsym", dsym_folder)
             copy_dsyms("#{absolute_path.dirname}/*/*.dsym", dsym_folder)
-            Xcodeproj::Plist.write_to_path({"NAME" => "Emerge Upload"}, "#{d}/archive.xcarchive/Info.plist")
+            Xcodeproj::Plist.write_to_path({ "NAME" => "Emerge Upload" }, "#{d}/archive.xcarchive/Info.plist")
             file_path = "#{absolute_path.dirname}/archive.xcarchive.zip"
             ZipAction.run(
               path: "#{d}/archive.xcarchive",
               output_path: file_path,
               exclude: [],
-              include: [])
+              include: []
+            )
             UI.message("Archive generated at #{file_path}")
           end
         elsif File.extname(file_path) == '.xcarchive'
@@ -74,7 +75,8 @@ module Fastlane
             path: file_path,
             output_path: zip_path,
             exclude: [],
-            include: [])
+            include: []
+          )
           file_path = zip_path
         elsif File.extname(file_path) == '.zip' && params[:linkmaps] && params[:linkmaps].length > 0
           UI.error("Provided zipped archive and linkmaps, linkmaps will not be added to zip.")
@@ -86,7 +88,7 @@ module Fastlane
         filename = File.basename(file_path)
         url = 'https://api.emergetools.com/upload'
         params = {
-          filename: filename,
+          filename: filename
         }
         if pr_number
           params[:prNumber] = pr_number
@@ -109,12 +111,13 @@ module Fastlane
         if order_file_version
           params[:orderFileVersion] = order_file_version
         end
-        params[:buildType] = build_type || "development"
+        params[:buildType] = tag || "development"
         FastlaneCore::PrintTable.print_values(
           config: params,
           hide_keys: [],
-          title: "Summary for Emerge #{Fastlane::Emerge::VERSION}")
-        resp = Faraday.post(url, params.to_json, {'Content-Type' => 'application/json', 'X-API-Token' => api_token})
+          title: "Summary for Emerge #{Fastlane::Emerge::VERSION}"
+        )
+        resp = Faraday.post(url, params.to_json, 'Content-Type' => 'application/json', 'X-API-Token' => api_token)
         case resp.status
         when 200
           json = JSON.parse(resp.body)
@@ -126,7 +129,7 @@ module Fastlane
         when 400
           UI.error("Invalid parameters")
           json = JSON.parse(resp.body)
-          UI.error("Error: #{json["errorMessage"]}")
+          UI.error("Error: #{json['errorMessage']}")
         else
           UI.error("Upload failed")
         end
@@ -140,10 +143,10 @@ module Fastlane
       end
 
       def self.copy_config(config_path, tmp_dir)
-        return unless config_path != nil
+        return if config_path.nil?
 
         expanded_path = File.expand_path(config_path)
-        if not File.exist?(expanded_path)
+        unless File.exist?(expanded_path)
           UI.error("No config file found at path '#{expanded_path}'.\nUploading without config file")
           return
         end
@@ -172,65 +175,65 @@ module Fastlane
       def self.available_options
         [
           FastlaneCore::ConfigItem.new(key: :api_token,
-                                  env_name: "EMERGE_API_TOKEN",
-                               description: "An API token for Emerge",
-                                  optional: false,
-                                      type: String),
+                                       env_name: "EMERGE_API_TOKEN",
+                                       description: "An API token for Emerge",
+                                       optional: false,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :file_path,
-                                  env_name: "EMERGE_FILE_PATH",
-                               description: "Path to the zipped xcarchive or app to upload",
-                                  optional: true,
-                                      type: String),
+                                       env_name: "EMERGE_FILE_PATH",
+                                       description: "Path to the zipped xcarchive or app to upload",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :linkmaps,
-                                   description: "List of paths to linkmaps",
-                                      optional: true,
-                                          type: Array),
+                                       description: "List of paths to linkmaps",
+                                       optional: true,
+                                       type: Array),
           FastlaneCore::ConfigItem.new(key: :pr_number,
-                               description: "The PR number that triggered this upload",
-                                  optional: true,
-                                      type: String),
+                                       description: "The PR number that triggered this upload",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :branch,
-                              description: "The current git branch",
-                                optional: true,
-                                    type: String),
+                                       description: "The current git branch",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :sha,
-                              description: "The git SHA that triggered this build",
-                                optional: true,
-                                    type: String),
+                                       description: "The git SHA that triggered this build",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :base_sha,
-                               description: "The git SHA of the base build",
-                                  optional: true,
-                                      type: String),
+                                       description: "The git SHA of the base build",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :build_id,
-                               description: "A string to identify this build",
-                                deprecated: "Replaced by `sha`",
-                                  optional: true,
-                                      type: String),
+                                       description: "A string to identify this build",
+                                       deprecated: "Replaced by `sha`",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :base_build_id,
-                               description: "Id of the build to compare with this upload",
-                                deprecated: "Replaced by `base_sha`",
-                                  optional: true,
-                                      type: String),
+                                       description: "Id of the build to compare with this upload",
+                                       deprecated: "Replaced by `base_sha`",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :repo_name,
-                               description: "Full name of the respository this upload was triggered from. For example: EmergeTools/Emerge",
-                                  optional: true,
-                                      type: String),
+                                       description: "Full name of the respository this upload was triggered from. For example: EmergeTools/Emerge",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :gitlab_project_id,
-                               description: "Id of the gitlab project this upload was triggered from",
-                                  optional: true,
-                                      type: Integer),
-          FastlaneCore::ConfigItem.new(key: :build_type,
-                               description: "String to identify the type of build such as release/development. Used to filter size graphs. Defaults to development",
-                                  optional: true,
-                                      type: String),
+                                       description: "Id of the gitlab project this upload was triggered from",
+                                       optional: true,
+                                       type: Integer),
+          FastlaneCore::ConfigItem.new(key: :tag,
+                                       description: "String to label the build. Useful for grouping builds together in our dashboard, like debug, release, or pull-request. Defaults to development",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :order_file_version,
-                               description: "Version of the order file to download",
-                                  optional: true,
-                                      type: String),
+                                       description: "Version of the order file to download",
+                                       optional: true,
+                                       type: String),
           FastlaneCore::ConfigItem.new(key: :config_path,
-                               description: "Path to Emerge config path",
-                                  optional: true,
-                                      type: String),
+                                       description: "Path to Emerge config path",
+                                       optional: true,
+                                       type: String)
         ]
       end
 
