@@ -111,7 +111,7 @@ module Fastlane
         if order_file_version
           params[:orderFileVersion] = order_file_version
         end
-        params[:buildType] = tag || "development"
+        params[:tag] = tag || "development"
         FastlaneCore::PrintTable.print_values(
           config: params,
           hide_keys: [],
@@ -225,6 +225,11 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :tag,
                                        description: "String to label the build. Useful for grouping builds together in our dashboard, like debug, release, or pull-request. Defaults to development",
                                        optional: true,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :build_type,
+                                       description: "String to label the build. Useful for grouping builds together in our dashboard, like debug, release, or pull-request. Defaults to development",
+                                       optional: true,
+                                       deprecated: "Replaced by `tag`",
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :order_file_version,
                                        description: "Version of the order file to download",
