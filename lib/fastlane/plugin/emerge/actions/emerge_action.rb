@@ -111,13 +111,17 @@ module Fastlane
         if order_file_version
           params[:orderFileVersion] = order_file_version
         end
-        params[:tag] = tag || "development"
+        params[:tag] = tag || "default"
         FastlaneCore::PrintTable.print_values(
           config: params,
           hide_keys: [],
           title: "Summary for Emerge #{Fastlane::Emerge::VERSION}"
         )
-        resp = Faraday.post(url, params.to_json, 'Content-Type' => 'application/json', 'X-API-Token' => api_token)
+        resp = Faraday.post(
+          url,
+          params.to_json,
+          'Content-Type' => 'application/json', 'X-API-Token' => api_token, 'User-Agent' => "fastlane-plugin-emerge/#{Fastlane::Emerge::VERSION}"
+        )
         case resp.status
         when 200
           json = JSON.parse(resp.body)
@@ -223,11 +227,11 @@ module Fastlane
                                        optional: true,
                                        type: Integer),
           FastlaneCore::ConfigItem.new(key: :tag,
-                                       description: "String to label the build. Useful for grouping builds together in our dashboard, like debug, release, or pull-request. Defaults to development",
+                                       description: "String to label the build. Useful for grouping builds together in our dashboard, like development, default, or pull-request.",
                                        optional: true,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :build_type,
-                                       description: "String to label the build. Useful for grouping builds together in our dashboard, like debug, release, or pull-request. Defaults to development",
+                                       description: "String to label the build. Useful for grouping builds together in our dashboard, like development, default, or pull-request.",
                                        optional: true,
                                        deprecated: "Replaced by `tag`",
                                        type: String),
