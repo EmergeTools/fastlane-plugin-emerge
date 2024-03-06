@@ -16,9 +16,11 @@ module Fastlane
         case response.status
         when 200
           UI.success("Your app is processing, you can find the results at https://emergetools.com/build/#{upload_id}")
+          return upload_id
         else
           UI.error("Upload failed")
         end
+        return nil
       end
     end
   end

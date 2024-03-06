@@ -127,7 +127,11 @@ module Fastlane
           json = JSON.parse(resp.body)
           upload_id = json["upload_id"]
           upload_url = json["uploadURL"]
-          Helper::EmergeHelper.perform_upload(upload_url, upload_id, file_path)
+          warning = json["warning"]
+          if warning
+            UI.important(warning)
+          end
+          return Helper::EmergeHelper.perform_upload(upload_url, upload_id, file_path)
         when 403
           UI.error("Invalid API token")
         when 400
