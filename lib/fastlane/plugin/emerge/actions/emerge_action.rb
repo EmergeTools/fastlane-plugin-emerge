@@ -16,11 +16,12 @@ module Fastlane
         if file_path.nil?
           file_path = Dir.glob("#{lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]}/Build/Products/Debug-iphonesimulator/*.app").first
         end
-        pr_number = params[:pr_number]
-        branch = params[:branch]
-        sha = params[:sha] || params[:build_id]
-        base_sha = params[:base_sha] || params[:base_build_id]
-        repo_name = params[:repo_name]
+        git_result = make_git_result
+        pr_number = params[:pr_number] || git_result.pr_number
+        branch = params[:branch] || git_result.branch
+        sha = params[:sha] || params[:build_id] || git_result.sha
+        base_sha = params[:base_sha] || params[:base_build_id] || git_result.base_sha
+        repo_name = params[:repo_name] || git_result.repo_name
         gitlab_project_id = params[:gitlab_project_id]
         tag = params[:tag]
         order_file_version = params[:order_file_version]
@@ -251,6 +252,35 @@ module Fastlane
         #
         # [:ios, :mac, :android].include?(platform)
         platform == :ios
+      end
+
+      def self.make_git_result
+        if Helper::Github.is_supported_github_event?
+          return GitResult.new(
+            sha: Helper::Github.sha,
+            base_sha: Helper::Github.base_sha,
+            branch: Helper::Git.branch,
+            pr_number: Helper::Github.pr_number,
+            repo_name: Helper::Github.repo_name
+          )
+        end
+        GitResult.new(
+          sha: Helper::Github.sha,
+          base_sha: Helper::Github.base_sha,
+          branch: Helper::Git.branch
+        )
+      end
+    end
+
+    class GitResult
+      attr_accessor :pr_number, :branch, :sha, :base_sha, :repo_name
+
+      def initialize(pr_number: nil, branch:, sha:, base_sha:, repo_name:)
+        @pr_number = pr_number
+        @sha = sha
+        @base_sha = base_sha
+        @branch = branch
+        @repo_name = repo_name
       end
     end
   end
