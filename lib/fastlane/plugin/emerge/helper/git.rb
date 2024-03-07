@@ -1,18 +1,22 @@
+require 'open3'
+
 module Fastlane
   module Helper
     module Git
       def self.branch
-        system("git rev-parse --abbrev-ref HEAD").strip
+        stdout, _, status = Open3.capture3("git rev-parse --abbrev-ref HEAD")
+        stdout.strip if status.success?
       end
 
       def self.sha
-        system("git rev-parse HEAD").strip
+        stdout, _, status = Open3.capture3("git rev-parse HEAD")
+        stdout.strip if status.success?
       end
 
       def self.base_sha
-        base_sha = system("git merge-base #{remote_head_branch} #{branch}")
-        return nil if base_sha.strip.empty?
-        base_sha
+        stdout, _, status = Open3.capture3("git merge-base #{remote_head_branch} #{branch}")
+        return nil if stdout.strip.empty? || !status.success?
+        stdout.strip
       end
 
       def self.primary_remote

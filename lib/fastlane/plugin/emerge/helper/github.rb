@@ -1,6 +1,6 @@
 require 'json'
-require 'fastlane_core/ui/ui'
-require 'fastlane/helper/git'
+require 'fastlane_core/print_table'
+require_relative 'git'
 
 module Fastlane
   module Helper
@@ -16,31 +16,31 @@ module Fastlane
         result.nil? ? nil : result[1]
       end
 
-      def repo_owner
+      def self.repo_owner
         repo_id&.split('/')&.first
       end
 
-      def repo_name
+      def self.repo_name
         repo_id&.split('/')&.last
       end
 
-      def event_name
+      def self.event_name
         ENV['GITHUB_EVENT_NAME']
       end
 
-      def is_supported_github_event?
+      def self.is_supported_github_event?
         is_pull_request? || is_push?
       end
 
-      def is_pull_request?
+      def self.is_pull_request?
         event_name == GITHUB_EVENT_PR
       end
 
-      def is_push?
+      def self.is_push?
         event_name == GITHUB_EVENT_PUSH
       end
 
-      def sha
+      def self.sha
         if is_push?
           ENV['GITHUB_SHA']
         elsif is_pull_request?
@@ -48,24 +48,24 @@ module Fastlane
         end
       end
 
-      def base_sha
+      def self.base_sha
         if is_pull_request?
           pull_request_event_data[:pr][:base][:sha]
         end
       end
 
-      def pr_number
+      def self.pr_number
         is_pull_request? ? pull_request_event_data[:number] : nil
       end
 
       private
 
-      def pull_request_event_data
+      def self.pull_request_event_data
         github_event_path = ENV['GITHUB_EVENT_PATH']
-        UI.user_error!("GITHUB_EVENT_PATH is not set") if github_event_path.nil?
+        UI.error!("GITHUB_EVENT_PATH is not set") if github_event_path.nil?
 
         file = File.new(github_event_path)
-        UI.user_error!("File #{github_event_path} doesn't exist") unless file.exist?
+        UI.error!("File #{github_event_path} doesn't exist") unless file.exist?
 
         file_content = File.read(github_event_path)
         JSON.parse(file_content, symbolize_names: true)

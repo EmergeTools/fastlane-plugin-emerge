@@ -1,6 +1,8 @@
 require 'fastlane/action'
 require 'fastlane_core/print_table'
 require_relative '../helper/emerge_helper'
+require_relative '../helper/git'
+require_relative '../helper/github'
 require 'pathname'
 require 'tmpdir'
 require 'json'
@@ -273,9 +275,9 @@ module Fastlane
     end
 
     class GitResult
-      attr_accessor :pr_number, :branch, :sha, :base_sha, :repo_name
+      attr_accessor :sha, :base_sha, :branch, :pr_number, :repo_name
 
-      def initialize(pr_number: nil, branch:, sha:, base_sha:, repo_name:)
+      def initialize(sha:, base_sha:, branch:, pr_number: nil, repo_name: nil)
         @pr_number = pr_number
         @sha = sha
         @base_sha = base_sha
