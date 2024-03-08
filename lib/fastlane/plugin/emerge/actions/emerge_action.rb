@@ -7,6 +7,7 @@ require 'pathname'
 require 'tmpdir'
 require 'json'
 require 'fileutils'
+# require 'pry'
 
 module Fastlane
   module Actions
@@ -18,12 +19,12 @@ module Fastlane
         if file_path.nil?
           file_path = Dir.glob("#{lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]}/Build/Products/Debug-iphonesimulator/*.app").first
         end
-        git_result = make_git_result
-        pr_number = params[:pr_number] || git_result.pr_number
-        branch = params[:branch] || git_result.branch
-        sha = params[:sha] || params[:build_id] || git_result.sha
-        base_sha = params[:base_sha] || params[:base_build_id] || git_result.base_sha
-        repo_name = params[:repo_name] || git_result.repo_name
+        git_params = Helper::EmergeHelper.make_git_params
+        pr_number = params[:pr_number] || git_params.pr_number
+        branch = params[:branch] || git_params.branch
+        sha = params[:sha] || params[:build_id] || git_params.sha
+        base_sha = params[:base_sha] || params[:base_build_id] || git_params.base_sha
+        repo_name = params[:repo_name] || git_params.repo_name
         gitlab_project_id = params[:gitlab_project_id]
         tag = params[:tag]
         order_file_version = params[:order_file_version]
@@ -249,40 +250,7 @@ module Fastlane
       end
 
       def self.is_supported?(platform)
-        # Adjust this if your plugin only works for a particular platform (iOS vs. Android, for example)
-        # See: https://docs.fastlane.tools/advanced/#control-configuration-by-lane-and-by-platform
-        #
-        # [:ios, :mac, :android].include?(platform)
         platform == :ios
-      end
-
-      def self.make_git_result
-        if Helper::Github.is_supported_github_event?
-          return GitResult.new(
-            sha: Helper::Github.sha,
-            base_sha: Helper::Github.base_sha,
-            branch: Helper::Git.branch,
-            pr_number: Helper::Github.pr_number,
-            repo_name: Helper::Github.repo_name
-          )
-        end
-        GitResult.new(
-          sha: Helper::Git.sha,
-          base_sha: Helper::Git.base_sha,
-          branch: Helper::Git.branch
-        )
-      end
-    end
-
-    class GitResult
-      attr_accessor :sha, :base_sha, :branch, :pr_number, :repo_name
-
-      def initialize(sha:, base_sha:, branch:, pr_number: nil, repo_name: nil)
-        @pr_number = pr_number
-        @sha = sha
-        @base_sha = base_sha
-        @branch = branch
-        @repo_name = repo_name
       end
     end
   end
