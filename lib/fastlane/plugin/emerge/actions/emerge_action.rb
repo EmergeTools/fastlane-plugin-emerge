@@ -7,7 +7,6 @@ require 'pathname'
 require 'tmpdir'
 require 'json'
 require 'fileutils'
-# require 'pry'
 
 module Fastlane
   module Actions
@@ -176,11 +175,10 @@ module Fastlane
       end
 
       def self.return_value
-        # If your method provides a return value, you can describe here what it does
+        "If successful, returns the upload id of the generated build"
       end
 
       def self.details
-        # Optional:
         ""
       end
 
