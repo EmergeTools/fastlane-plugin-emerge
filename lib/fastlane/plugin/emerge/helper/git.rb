@@ -16,7 +16,8 @@ module Fastlane
       def self.base_sha
         stdout, _, status = Open3.capture3("git merge-base #{remote_head_branch} #{branch}")
         return nil if stdout.strip.empty? || !status.success?
-        stdout.strip
+        current_sha = sha
+        stdout.strip == current_sha ? nil : stdout.strip
       end
 
       def self.primary_remote
@@ -27,9 +28,9 @@ module Fastlane
 
       def self.remote_head_branch(remote = primary_remote)
         return nil if remote.nil?
-        show = system("git remote show #{remote}")
-        return nil if show.nil?
-        show
+        stdout, _, status = Open3.capture3("git remote show #{remote}")
+        return nil if stdout.nil? || !status.success?
+        stdout
           .split("\n")
           .map(&:strip)
           .find { |line| line.start_with?("HEAD branch: ") }
@@ -39,11 +40,13 @@ module Fastlane
 
       def self.remote_url(remote = primary_remote)
         return nil if remote.nil?
-        system("git config --get remote.#{remote}.url")
+        stdout, _, status = Open3.capture3("git config --get remote.#{remote}.url")
+        stdout if status.success?
       end
 
       def self.remote
-        system("git remote")&.split("\n")
+        stdout, _, status = Open3.capture3("git remote")
+        stdout.split("\n") if status.success?
       end
     end
   end

@@ -267,8 +267,8 @@ module Fastlane
           )
         end
         GitResult.new(
-          sha: Helper::Github.sha,
-          base_sha: Helper::Github.base_sha,
+          sha: Helper::Git.sha,
+          base_sha: Helper::Git.base_sha,
           branch: Helper::Git.branch
         )
       end
