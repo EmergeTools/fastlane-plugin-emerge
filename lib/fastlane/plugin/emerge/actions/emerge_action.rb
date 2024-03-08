@@ -1,6 +1,8 @@
 require 'fastlane/action'
 require 'fastlane_core/print_table'
 require_relative '../helper/emerge_helper'
+require_relative '../helper/git'
+require_relative '../helper/github'
 require 'pathname'
 require 'tmpdir'
 require 'json'
@@ -16,11 +18,12 @@ module Fastlane
         if file_path.nil?
           file_path = Dir.glob("#{lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]}/Build/Products/Debug-iphonesimulator/*.app").first
         end
-        pr_number = params[:pr_number]
-        branch = params[:branch]
-        sha = params[:sha] || params[:build_id]
-        base_sha = params[:base_sha] || params[:base_build_id]
-        repo_name = params[:repo_name]
+        git_params = Helper::EmergeHelper.make_git_params
+        pr_number = params[:pr_number] || git_params.pr_number
+        branch = params[:branch] || git_params.branch
+        sha = params[:sha] || params[:build_id] || git_params.sha
+        base_sha = params[:base_sha] || params[:base_build_id] || git_params.base_sha
+        repo_name = params[:repo_name] || git_params.repo_name
         gitlab_project_id = params[:gitlab_project_id]
         tag = params[:tag]
         order_file_version = params[:order_file_version]
@@ -172,11 +175,10 @@ module Fastlane
       end
 
       def self.return_value
-        # If your method provides a return value, you can describe here what it does
+        "If successful, returns the upload id of the generated build"
       end
 
       def self.details
-        # Optional:
         ""
       end
 
@@ -246,10 +248,6 @@ module Fastlane
       end
 
       def self.is_supported?(platform)
-        # Adjust this if your plugin only works for a particular platform (iOS vs. Android, for example)
-        # See: https://docs.fastlane.tools/advanced/#control-configuration-by-lane-and-by-platform
-        #
-        # [:ios, :mac, :android].include?(platform)
         platform == :ios
       end
     end
