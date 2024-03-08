@@ -8,27 +8,12 @@ module Fastlane
       GITHUB_EVENT_PR = "pull_request".freeze
       GITHUB_EVENT_PUSH = "push".freeze
 
-      def self.repo_id
-        remote_url = Helper::Git.remote_url
-        return nil unless remote_url
-
-        result = remote_url.match(/[:\/]([^\/]+\/[^\/.]+)\.git$/)
-        result.nil? ? nil : result[1]
-      end
-
-      def self.repo_owner
-        repo_id&.split('/')&.first
-      end
-
-      def self.repo_name
-        repo_id&.split('/')&.last
-      end
-
       def self.event_name
         ENV['GITHUB_EVENT_NAME']
       end
 
       def self.is_supported_github_event?
+        UI.message("GitHub event name: #{event_name}")
         is_pull_request? || is_push?
       end
 
@@ -44,31 +29,48 @@ module Fastlane
         if is_push?
           ENV['GITHUB_SHA']
         elsif is_pull_request?
-          pull_request_event_data.fetch(:pr, :head, :sha)
+          github_event_data.dig(:pull_request, :head, :sha)
         end
       end
 
       def self.base_sha
         if is_pull_request?
-          pull_request_event_data.fetch(:pr, :base, :sha)
+          github_event_data.dig(:pull_request, :base, :sha)
         end
       end
 
       def self.pr_number
-        is_pull_request? ? pull_request_event_data[:number] : nil
+        is_pull_request? ? github_event_data.dig(:number) : nil
+      end
+
+      def self.branch
+        is_pull_request? ? github_event_data.dig(:pull_request, :head, :ref) : Git.branch
+      end
+
+      def self.repo_owner
+        github_event_data.dig(:repository, :owner, :login)
+      end
+
+      def self.repo_name
+        github_event_data.dig(:repository, :full_name)
       end
 
       private
 
-      def self.pull_request_event_data
+      def self.github_event_data
         github_event_path = ENV['GITHUB_EVENT_PATH']
         UI.error!("GITHUB_EVENT_PATH is not set") if github_event_path.nil?
 
-        file = File.new(github_event_path)
-        UI.error!("File #{github_event_path} doesn't exist") unless file.exist?
+        unless File.exist?(github_event_path)
+          UI.error!("File #{github_event_path} doesn't exist")
+        end
 
         file_content = File.read(github_event_path)
-        JSON.parse(file_content, symbolize_names: true)
+        file_json = JSON.parse(file_content, symbolize_names: true)
+        if ENV['DEBUG']
+          UI.message("Parsed GitHub event data: #{file_json.inspect}")
+        end
+        file_json
       end
     end
   end
