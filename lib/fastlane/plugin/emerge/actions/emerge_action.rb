@@ -50,7 +50,7 @@ module Fastlane
                 FileUtils.cp(l, linkmap_folder)
               end
             end
-            copy_config(config_path, "#{d}/archive.xcarchive")
+            Helper::EmergeHelper.copy_config(config_path, "#{d}/archive.xcarchive")
             FileUtils.cp_r(file_path, application_folder)
             copy_dsyms("#{absolute_path.dirname}/*.dsym", dsym_folder)
             copy_dsyms("#{absolute_path.dirname}/*/*.dsym", dsym_folder)
@@ -73,7 +73,7 @@ module Fastlane
               FileUtils.cp(l, linkmap_folder)
             end
           end
-          copy_config(config_path, file_path)
+          Helper::EmergeHelper.copy_config(config_path, file_path)
           Actions::ZipAction.run(
             path: file_path,
             output_path: zip_path,
@@ -107,19 +107,6 @@ module Fastlane
           UI.message("Found dSYM: #{Pathname.new(filename).basename}")
           FileUtils.cp_r(filename, to)
         end
-      end
-
-      def self.copy_config(config_path, tmp_dir)
-        return if config_path.nil?
-
-        expanded_path = File.expand_path(config_path)
-        unless File.exist?(expanded_path)
-          UI.error("No config file found at path '#{expanded_path}'.\nUploading without config file")
-          return
-        end
-
-        emerge_config_path = "#{tmp_dir}/emerge_config.yaml"
-        FileUtils.cp(expanded_path, emerge_config_path)
       end
 
       def self.description

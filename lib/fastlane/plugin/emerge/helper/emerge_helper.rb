@@ -21,15 +21,13 @@ module Fastlane
       API_URL = 'https://api.emergetools.com/upload'.freeze
 
       def self.perform_upload(api_token, params, file_path)
-        begin
-          cleaned_params = clean_params(params)
-          print_summary(cleaned_params)
+        cleaned_params = clean_params(params)
+        print_summary(cleaned_params)
 
-          upload_response = create_upload(api_token, cleaned_params)
-          handle_upload_response(api_token, upload_response, file_path)
-        rescue StandardError => e
-          UI.user_error!(e.message)
-        end
+        upload_response = create_upload(api_token, cleaned_params)
+        handle_upload_response(api_token, upload_response, file_path)
+      rescue StandardError => e
+        UI.user_error!(e.message)
       end
 
       def self.make_git_params
@@ -52,6 +50,19 @@ module Fastlane
                      end
         UI.message("Got git result #{git_result.inspect}")
         git_result
+      end
+
+      def self.copy_config(config_path, tmp_dir)
+        return if config_path.nil?
+
+        expanded_path = File.expand_path(config_path)
+        unless File.exist?(expanded_path)
+          UI.error("No config file found at path '#{expanded_path}'.\nUploading without config file")
+          return
+        end
+
+        emerge_config_path = "#{tmp_dir}/emerge_config.yaml"
+        FileUtils.cp(expanded_path, emerge_config_path)
       end
 
       private_class_method

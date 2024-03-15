@@ -41,7 +41,7 @@ module Fastlane
             archive_path: archive_path
           )
 
-          copy_config(config_path, archive_path)
+          Helper::EmergeHelper.copy_config(config_path, archive_path)
           Xcodeproj::Plist.write_to_path({ "NAME" => "Emerge Upload" }, "#{archive_path}/Info.plist")
           dsym_path = "#{archive_path}/dSYMs"
           if Dir.exist?(dsym_path)
@@ -70,19 +70,6 @@ module Fastlane
           upload_id = Helper::EmergeHelper.perform_upload(api_token, params, zip_file_path)
           UI.success("🎉 Your app is processing, you can find the results at https://emergetools.com/snapshot/#{upload_id}")
         end
-      end
-
-      def self.copy_config(config_path, tmp_dir)
-        return if config_path.nil?
-
-        expanded_path = File.expand_path(config_path)
-        unless File.exist?(expanded_path)
-          UI.error("No config file found at path '#{expanded_path}'.\nUploading without config file")
-          return
-        end
-
-        emerge_config_path = "#{tmp_dir}/emerge_config.yaml"
-        FileUtils.cp(expanded_path, emerge_config_path)
       end
 
       def self.description
