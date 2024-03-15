@@ -34,7 +34,6 @@ module Fastlane
             configuration: configuration,
             skip_codesigning: true,
             clean: true,
-            include_symbols: true,
             export_method: "development",
             export_team_id: team_id,
             skip_package_ipa: true,
@@ -44,11 +43,6 @@ module Fastlane
 
           Helper::EmergeHelper.copy_config(config_path, archive_path)
           Xcodeproj::Plist.write_to_path({ "NAME" => "Emerge Upload" }, "#{archive_path}/Info.plist")
-          dsym_path = "#{archive_path}/dSYMs"
-          if Dir.exist?(dsym_path)
-            UI.message("Removing dSYMs from xcarchive")
-            FileUtils.rm_rf(dsym_path)
-          end
 
           zip_file_path = "#{temp_dir}/build/archive.xcarchive.zip"
           ZipAction.run(
