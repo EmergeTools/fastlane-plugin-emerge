@@ -25,6 +25,7 @@ module Fastlane
         config_path = params[:config_path]
         scheme = params[:scheme]
         configuration = params[:configuration]
+        team_id = params[:team_id] || CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
 
         Dir.mktmpdir do |temp_dir|
           archive_path = "#{temp_dir}/build/snapshot.xcarchive"
@@ -35,7 +36,7 @@ module Fastlane
             clean: true,
             include_symbols: true,
             export_method: "development",
-            export_team_id: ENV['APPLE_TEAM_ID'],
+            export_team_id: team_id,
             skip_package_ipa: true,
             output_directory: "#{temp_dir}/build",
             archive_path: archive_path
@@ -103,6 +104,11 @@ module Fastlane
                                        description: "The configuration of your app to use",
                                        optional: false,
                                        default_value: "Debug",
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :team_id,
+                                       env_name: "EXPORT_TEAM_ID",
+                                       description: "The Apple Team ID to use for exporting the archive. If not provided, we will try to use the team_id from the Appfile",
+                                       optional: true,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :config_path,
                                        description: "Path to Emerge YAML config path",
