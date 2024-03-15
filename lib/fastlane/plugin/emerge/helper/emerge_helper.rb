@@ -18,21 +18,18 @@ module Fastlane
 
   module Helper
     class EmergeHelper
-      def self.perform_upload(upload_url, upload_id, file_path)
-        UI.message("Starting upload")
-        response = Faraday.put(upload_url) do |req|
-          req.headers['Content-Type'] = 'application/zip'
-          req.headers['Content-Length'] = File.size(file_path).to_s
-          req.body = Faraday::UploadIO.new(file_path, 'application/zip')
+      API_URL = 'https://api.emergetools.com/upload'.freeze
+
+      def self.perform_upload(api_token, params, file_path)
+        begin
+          cleaned_params = clean_params(params)
+          print_summary(cleaned_params)
+
+          upload_response = create_upload(api_token, cleaned_params)
+          handle_upload_response(api_token, upload_response, file_path)
+        rescue StandardError => e
+          UI.user_error!(e.message)
         end
-        case response.status
-        when 200
-          UI.success("🎉 Your app is processing, you can find the results at https://emergetools.com/build/#{upload_id}")
-          return upload_id
-        else
-          UI.error("Upload failed")
-        end
-        return nil
       end
 
       def self.make_git_params
@@ -55,6 +52,66 @@ module Fastlane
                      end
         UI.message("Got git result #{git_result.inspect}")
         git_result
+      end
+
+      private_class_method
+
+      def self.clean_params(params)
+        params.reject { |_, v| v.nil? }
+      end
+
+      def self.print_summary(params)
+        FastlaneCore::PrintTable.print_values(
+          config: params,
+          hide_keys: [],
+          title: "Summary for Emerge Upload #{Fastlane::Emerge::VERSION}"
+        )
+      end
+
+      def self.create_upload(api_token, params)
+        response = Faraday.post(API_URL, params.to_json, headers(api_token, params, 'application/json'))
+        parse_response(response)
+      end
+
+      def self.headers(api_token, params, content_type)
+        {
+          'Content-Type' => content_type,
+          'X-API-Token' => api_token,
+          'User-Agent' => "fastlane-plugin-emerge/#{Fastlane::Emerge::VERSION}"
+        }
+      end
+
+      def self.parse_response(response)
+        case response.status
+        when 200
+          JSON.parse(response.body)
+        when 400
+          error_message = JSON.parse(response.body)['errorMessage']
+          raise "Invalid parameters: #{error_message}"
+        when 401, 403
+          raise 'Invalid API token'
+        else
+          raise "Creating upload failed with status #{response.status}"
+        end
+      end
+
+      def self.handle_upload_response(api_token, response, file_path)
+        upload_url = response.fetch('uploadURL')
+        upload_id = response.fetch('upload_id')
+
+        UI.message('Starting zip file upload')
+        upload_file(api_token, upload_url, file_path)
+        upload_id
+      end
+
+      def self.upload_file(api_token, upload_url, file_path)
+        response = Faraday.put(upload_url) do |req|
+          req.headers = headers(api_token, nil, 'application/zip')
+          req.headers['Content-Length'] = File.size(file_path).to_s
+          req.body = Faraday::UploadIO.new(file_path, 'application/zip')
+        end
+
+        raise "Uploading zip file failed #{response.status}" unless response.status == 200
       end
     end
   end
