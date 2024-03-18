@@ -110,6 +110,11 @@ module Fastlane
         upload_url = response.fetch('uploadURL')
         upload_id = response.fetch('upload_id')
 
+        warning = response.dig('warning')
+        if warning
+          UI.important(warning)
+        end
+
         UI.message('Starting zip file upload')
         upload_file(api_token, upload_url, file_path)
         upload_id
