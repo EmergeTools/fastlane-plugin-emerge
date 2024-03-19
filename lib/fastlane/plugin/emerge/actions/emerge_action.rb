@@ -50,7 +50,7 @@ module Fastlane
                 FileUtils.cp(l, linkmap_folder)
               end
             end
-            copy_config(config_path, "#{d}/archive.xcarchive")
+            Helper::EmergeHelper.copy_config(config_path, "#{d}/archive.xcarchive")
             FileUtils.cp_r(file_path, application_folder)
             copy_dsyms("#{absolute_path.dirname}/*.dsym", dsym_folder)
             copy_dsyms("#{absolute_path.dirname}/*/*.dsym", dsym_folder)
@@ -73,7 +73,7 @@ module Fastlane
               FileUtils.cp(l, linkmap_folder)
             end
           end
-          copy_config(config_path, file_path)
+          Helper::EmergeHelper.copy_config(config_path, file_path)
           Actions::ZipAction.run(
             path: file_path,
             output_path: zip_path,
@@ -88,62 +88,18 @@ module Fastlane
           return
         end
 
-        filename = File.basename(file_path)
-        url = 'https://api.emergetools.com/upload'
         params = {
-          filename: filename
+          prNumber: pr_number,
+          branch: branch,
+          sha: sha,
+          baseSha: base_sha,
+          repoName: repo_name,
+          gitlabProjectId: gitlab_project_id,
+          orderFileVersion: order_file_version,
+          tag: tag || "default"
         }
-        if pr_number
-          params[:prNumber] = pr_number
-        end
-        if branch
-          params[:branch] = branch
-        end
-        if sha
-          params[:sha] = sha
-        end
-        if base_sha
-          params[:baseSha] = base_sha
-        end
-        if repo_name
-          params[:repoName] = repo_name
-        end
-        if gitlab_project_id
-          params[:gitlabProjectId] = gitlab_project_id
-        end
-        if order_file_version
-          params[:orderFileVersion] = order_file_version
-        end
-        params[:tag] = tag || "default"
-        FastlaneCore::PrintTable.print_values(
-          config: params,
-          hide_keys: [],
-          title: "Summary for Emerge #{Fastlane::Emerge::VERSION}"
-        )
-        resp = Faraday.post(
-          url,
-          params.to_json,
-          'Content-Type' => 'application/json', 'X-API-Token' => api_token, 'User-Agent' => "fastlane-plugin-emerge/#{Fastlane::Emerge::VERSION}"
-        )
-        case resp.status
-        when 200
-          json = JSON.parse(resp.body)
-          upload_id = json["upload_id"]
-          upload_url = json["uploadURL"]
-          warning = json["warning"]
-          if warning
-            UI.important(warning)
-          end
-          return Helper::EmergeHelper.perform_upload(upload_url, upload_id, file_path)
-        when 403
-          UI.error("Invalid API token")
-        when 400
-          UI.error("Invalid parameters")
-          json = JSON.parse(resp.body)
-          UI.error("Error: #{json['errorMessage']}")
-        else
-          UI.error("Upload failed")
-        end
+        upload_id = Helper::EmergeHelper.perform_upload(api_token, params, file_path)
+        UI.success("🎉 Your app is processing, you can find the results at https://emergetools.com/build/#{upload_id}")
       end
 
       def self.copy_dsyms(from, to)
@@ -151,19 +107,6 @@ module Fastlane
           UI.message("Found dSYM: #{Pathname.new(filename).basename}")
           FileUtils.cp_r(filename, to)
         end
-      end
-
-      def self.copy_config(config_path, tmp_dir)
-        return if config_path.nil?
-
-        expanded_path = File.expand_path(config_path)
-        unless File.exist?(expanded_path)
-          UI.error("No config file found at path '#{expanded_path}'.\nUploading without config file")
-          return
-        end
-
-        emerge_config_path = "#{tmp_dir}/emerge_config.yaml"
-        FileUtils.cp(expanded_path, emerge_config_path)
       end
 
       def self.description
