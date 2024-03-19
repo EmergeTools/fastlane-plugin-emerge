@@ -28,23 +28,18 @@ module Fastlane
         team_id = params[:team_id] || CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
 
         Dir.mktmpdir do |temp_dir|
-          archive_path = "#{temp_dir}/build/snapshot.xcarchive"
-          other_action.gym(
+          archive_name = "#{scheme}-Emerge-Snapshots"
+          archive_path = "#{temp_dir}/build/#{archive_name}.xcarchive"
+          make_debug_build(
             scheme: scheme,
             configuration: configuration,
-            skip_codesigning: true,
-            clean: true,
-            export_method: "development",
-            export_team_id: team_id,
-            skip_package_ipa: true,
-            output_directory: "#{temp_dir}/build",
+            team_id: team_id,
             archive_path: archive_path
           )
-
           Helper::EmergeHelper.copy_config(config_path, archive_path)
           Xcodeproj::Plist.write_to_path({ "NAME" => "Emerge Upload" }, "#{archive_path}/Info.plist")
 
-          zip_file_path = "#{temp_dir}/build/archive.xcarchive.zip"
+          zip_file_path = "#{temp_dir}/build/#{archive_name}.xcarchive.zip"
           ZipAction.run(
             path: archive_path,
             output_path: zip_file_path,
@@ -65,6 +60,19 @@ module Fastlane
           upload_id = Helper::EmergeHelper.perform_upload(api_token, params, zip_file_path)
           UI.success("🎉 Your app is processing, you can find the results at https://emergetools.com/snapshot/#{upload_id}")
         end
+      end
+
+      def self.make_debug_build(scheme:, configuration:, team_id:, archive_path:)
+        other_action.gym(
+          scheme: scheme,
+          configuration: configuration,
+          skip_codesigning: true,
+          clean: true,
+          export_method: "development",
+          export_team_id: team_id,
+          skip_package_ipa: true,
+          archive_path: archive_path
+        )
       end
 
       def self.description
