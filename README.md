@@ -16,20 +16,36 @@ fastlane add_plugin emerge
 
 ## Usage
 
-To get started, first obtain an [API token](https://docs.emergetools.com/docs/uploading-basics#obtain-an-api-key) for your organization. The API Token is used to authenticate with the Emerge API in each call.
+To get started, first obtain an [API token](https://docs.emergetools.com/docs/uploading-basics#obtain-an-api-key) for your organization. The API Token is used to authenticate with the Emerge API in each call. Our actions will automatically pick up the API key if configured as an `EMERGE_API_TOKEN` environment variable.
+
+### Size Analysis
 
 ```ruby
-# Your EMERGE_API_TOKEN is available on your Emerge profile page: https://www.emergetools.com/profile
-ENV['EMERGE_API_TOKEN'] = 'COPIED_FROM_EMERGETOOLS_PROFILE'
-
-platform {:ios} do
+platform :ios do
   lane :app_size do
+    # Make a signed release build via gym() and other tools
+    # and then call our `emerge()` action to upload the artifact to our API
     emerge()
   end
 end
 ```
 
 For a full list of available parameters run `fastlane action emerge`.
+
+### Snapshot Testing
+
+```ruby
+platform :ios do
+  lane :snapshot_testing do
+    # Call our `emerge_snapshot()` action with the respective scheme for
+    # us to build. We will generate a build with the recommended settings
+    # and upload to our API.
+    emerge_snapshot(scheme: 'Hacker News')
+  end
+end
+```
+
+For a full list of available parameters run `fastlane action emerge_snapshot`.
 
 ## Git Configuration
 
