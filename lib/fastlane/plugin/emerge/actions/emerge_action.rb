@@ -96,6 +96,7 @@ module Fastlane
           repoName: repo_name,
           gitlabProjectId: gitlab_project_id,
           orderFileVersion: order_file_version,
+          appIdSuffix: params[:app_id_suffix],
           tag: tag || "default"
         }
         upload_id = Helper::EmergeHelper.perform_upload(api_token, params, file_path)
@@ -185,6 +186,10 @@ module Fastlane
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :config_path,
                                        description: "Path to Emerge config path",
+                                       optional: true,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :app_id_suffix,
+                                       description: "A suffix to append to the application ID to differentiate between different builds of the same app",
                                        optional: true,
                                        type: String)
         ]
