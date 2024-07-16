@@ -33,9 +33,10 @@ module Fastlane
           UI.error("Invalid input file")
           return
         end
+        extension = File.extname(file_path)
 
         # If the user provided a .app we will look for dsyms and package it into a zipped xcarchive
-        if File.extname(file_path) == '.app'
+        if extension == '.app'
           absolute_path = Pathname.new(File.expand_path(file_path))
           UI.message("A .app was provided, dSYMs will be looked for in #{absolute_path.dirname}")
           Dir.mktmpdir do |d|
@@ -64,7 +65,7 @@ module Fastlane
             )
             UI.message("Archive generated at #{file_path}")
           end
-        elsif File.extname(file_path) == '.xcarchive'
+        elsif extension == '.xcarchive'
           zip_path = file_path + ".zip"
           if params[:linkmaps] && params[:linkmaps].length > 0
             linkmap_folder = "#{file_path}/Linkmaps/"
@@ -81,9 +82,9 @@ module Fastlane
             include: []
           )
           file_path = zip_path
-        elsif File.extname(file_path) == '.zip' && params[:linkmaps] && params[:linkmaps].length > 0
-          UI.error("Provided zipped archive and linkmaps, linkmaps will not be added to zip.")
-        elsif File.extname(file_path) != '.zip'
+        elsif (extension == '.zip' || extension == '.ipa') && params[:linkmaps] && params[:linkmaps].length > 0
+          UI.error("Provided #{extension == '.zip' ? 'zipped archive' : 'ipa'} and linkmaps, linkmaps will not be added to upload.")
+        elsif extension != '.zip' && extension != '.ipa'
           UI.error("Invalid input file")
           return
         end
