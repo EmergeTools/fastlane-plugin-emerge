@@ -98,6 +98,7 @@ module Fastlane
           gitlabProjectId: gitlab_project_id,
           orderFileVersion: order_file_version,
           appIdSuffix: params[:app_id_suffix],
+          releaseNotes: params[:release_notes],
           tag: tag || "default"
         }
         upload_id = Helper::EmergeHelper.perform_upload(api_token, params, file_path)
@@ -191,6 +192,10 @@ module Fastlane
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :app_id_suffix,
                                        description: "A suffix to append to the application ID to differentiate between different builds of the same app",
+                                       optional: true,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :release_notes,
+                                       description: "A markdown string with release notes for the upload",
                                        optional: true,
                                        type: String)
         ]
