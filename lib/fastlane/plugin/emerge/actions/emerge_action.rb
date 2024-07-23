@@ -31,7 +31,7 @@ module Fastlane
 
         if file_path.nil? || !File.exist?(file_path)
           UI.error("Invalid input file")
-          return
+          return false
         end
         extension = File.extname(file_path)
 
@@ -86,7 +86,7 @@ module Fastlane
           UI.error("Provided #{extension == '.zip' ? 'zipped archive' : 'ipa'} and linkmaps, linkmaps will not be added to upload.")
         elsif extension != '.zip' && extension != '.ipa'
           UI.error("Invalid input file")
-          return
+          return false
         end
 
         params = {
@@ -103,6 +103,7 @@ module Fastlane
         }
         upload_id = Helper::EmergeHelper.perform_upload(api_token, params, file_path)
         UI.success("🎉 Your app is processing, you can find the results at https://emergetools.com/build/#{upload_id}")
+        upload_id
       end
 
       def self.copy_dsyms(from, to)
