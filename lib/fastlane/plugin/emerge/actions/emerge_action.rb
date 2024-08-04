@@ -59,6 +59,7 @@ module Fastlane
             file_path = "#{absolute_path.dirname}/archive.xcarchive.zip"
             ZipAction.run(
               path: "#{d}/archive.xcarchive",
+              symlinks: true,
               output_path: file_path,
               exclude: [],
               include: []
@@ -77,6 +78,7 @@ module Fastlane
           Helper::EmergeHelper.copy_config(config_path, file_path)
           Actions::ZipAction.run(
             path: file_path,
+            symlinks: true,
             output_path: zip_path,
             exclude: [],
             include: []
