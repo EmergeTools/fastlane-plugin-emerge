@@ -42,6 +42,7 @@ module Fastlane
           zip_file_path = "#{temp_dir}/build/#{archive_name}.xcarchive.zip"
           ZipAction.run(
             path: archive_path,
+            symlinks: true,
             output_path: zip_file_path,
             exclude: [],
             include: []
