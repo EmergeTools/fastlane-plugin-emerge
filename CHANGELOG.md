@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.4
+
+- Adds extra logging for which `file_path` is chosen.
+
 ## 0.9.0
 
 - Adds a new `emerge_snapshot()` action to build and upload an archive for snapshot testing on Emerge.
