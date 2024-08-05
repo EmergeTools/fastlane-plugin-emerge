@@ -16,14 +16,14 @@ module Fastlane
         branch_name = stdout.strip
         if branch_name == "HEAD"
           # We're in a detached HEAD state
-          # Find all branches that contains the current HEAD
+          # Find all branches that contains the current HEAD commit
           #
           # Example output:
           # * (HEAD detached at dec13a5)
           # telkins/detached-test
           # remotes/origin/telkins/detached-test
           #
-          # Then take the second line and extract the branch name
+          # So far I've seen this output be fairly stable, so take the second line
           shell_command = "git branch -a --contains HEAD | sed -n 2p | awk '{ printf $1 }'"
           UI.command(shell_command)
           head_stdout, _, head_status = Open3.capture3(shell_command)
