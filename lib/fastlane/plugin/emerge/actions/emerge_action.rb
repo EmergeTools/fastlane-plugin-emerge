@@ -13,11 +13,18 @@ module Fastlane
     class EmergeAction < Action
       def self.run(params)
         api_token = params[:api_token]
-        file_path = params[:file_path] || lane_context[SharedValues::XCODEBUILD_ARCHIVE]
 
-        if file_path.nil?
-          file_path = Dir.glob("#{lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]}/Build/Products/Debug-iphonesimulator/*.app").first
-        end
+        file_path = if params[:file_path]
+                      UI.message("Using input file_path: #{file_path}")
+                      params[:file_path]
+                    elsif lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+                      UI.message("Using XCODEBUILD_ARCHIVE path")
+                      lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+                    else
+                      UI.message("Falling back to searching SCAN_DERIVED_DATA_PATH")
+                      Dir.glob("#{lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]}/Build/Products/Debug-iphonesimulator/*.app").first
+                    end
+
         git_params = Helper::EmergeHelper.make_git_params
         pr_number = params[:pr_number] || git_params.pr_number
         branch = params[:branch] || git_params.branch
@@ -32,6 +39,8 @@ module Fastlane
         if file_path.nil? || !File.exist?(file_path)
           UI.error("Invalid input file")
           return false
+        else
+          UI.message("Using file_path: #{file_path}")
         end
         extension = File.extname(file_path)
 
