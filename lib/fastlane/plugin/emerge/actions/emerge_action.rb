@@ -39,6 +39,8 @@ module Fastlane
         if file_path.nil? || !File.exist?(file_path)
           UI.error("Invalid input file")
           return false
+        else
+          UI.message("Using file_path: #{file_path}")
         end
         extension = File.extname(file_path)
 
