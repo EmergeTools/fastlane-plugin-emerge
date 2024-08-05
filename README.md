@@ -23,12 +23,15 @@ To get started, first obtain an [API token](https://docs.emergetools.com/docs/up
 ```ruby
 platform :ios do
   lane :app_size do
-    # Make a signed release build via gym() and other tools
-    # and then call our `emerge()` action to upload the artifact to our API
-    emerge()
+    # Tip: group builds in our dashboard via the `tag` parameter
+    emerge(tag: 'pr_build')
   end
 end
 ```
+
+1. Produce a build using `gym()`, `run_tests()`, or other Fastlane actions
+2. When you are ready to upload to Emerge, simply call the `emerge()` action
+  i. We will automatically detect the most recently built app to upload, or you can manually pass in a `file_path` parameter.
 
 For a full list of available parameters run `fastlane action emerge`.
 
