@@ -31,7 +31,7 @@ end
 
 1. Produce a build using `gym()`, `run_tests()`, or other Fastlane actions
 2. When you are ready to upload to Emerge, simply call the `emerge()` action
-    i. We will automatically detect the most recently built app to upload, or you can manually pass in a `file_path` parameter.
+    a. We will automatically detect the most recently built app to upload, or you can manually pass in a `file_path` parameter.
 
 For a full list of available parameters run `fastlane action emerge`.
 
