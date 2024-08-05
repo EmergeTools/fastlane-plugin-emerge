@@ -8,7 +8,35 @@ module Fastlane
         shell_command = "git rev-parse --abbrev-ref HEAD"
         UI.command(shell_command)
         stdout, _, status = Open3.capture3(shell_command)
-        stdout.strip if status.success?
+        unless status.success?
+          UI.error("Failed to get the current branch name")
+          return nil
+        end
+
+        branch_name = stdout.strip
+        if branch_name == "HEAD"
+          # We're in a detached HEAD state
+          # Find all branches that contains the current HEAD
+          #
+          # Example output:
+          # * (HEAD detached at dec13a5)
+          # telkins/detached-test
+          # remotes/origin/telkins/detached-test
+          #
+          # Then take the second line and extract the branch name
+          shell_command = "git branch -a --contains HEAD | sed -n 2p | awk '{ printf $1 }'"
+          UI.command(shell_command)
+          head_stdout, _, head_status = Open3.capture3(shell_command)
+
+          unless head_status.success?
+            UI.error("Failed to get the current branch name for detached HEAD")
+            return nil
+          end
+
+          branch_name = head_stdout.strip
+        end
+
+        branch_name == "HEAD" ? nil : branch_name
       end
 
       def self.sha
@@ -19,7 +47,11 @@ module Fastlane
       end
 
       def self.base_sha
-        shell_command = "git merge-base #{remote_head_branch} #{branch}"
+        current_branch = branch
+        remote_head = remote_head_branch
+        return nil if current_branch.nil? || remote_head.nil?
+
+        shell_command = "git merge-base #{remote_head} #{current_branch}"
         UI.command(shell_command)
         stdout, _, status = Open3.capture3(shell_command)
         return nil if stdout.strip.empty? || !status.success?
