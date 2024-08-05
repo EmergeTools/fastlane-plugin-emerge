@@ -22,7 +22,7 @@ To get started, first obtain an [API token](https://docs.emergetools.com/docs/up
 
 ```ruby
 platform :ios do
-  lane :app_size do
+  lane :emerge_upload do
     # Tip: group builds in our dashboard via the `tag` parameter
     emerge(tag: 'pr_build')
   end
