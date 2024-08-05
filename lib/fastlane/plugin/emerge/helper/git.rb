@@ -23,7 +23,8 @@ module Fastlane
           # telkins/detached-test
           # remotes/origin/telkins/detached-test
           #
-          # So far I've seen this output be fairly stable, so take the second line
+          # So far I've seen this output be fairly stable
+          # If the input is invalid for whatever reason, sed/awk will return an empty string
           shell_command = "git branch -a --contains HEAD | sed -n 2p | awk '{ printf $1 }'"
           UI.command(shell_command)
           head_stdout, _, head_status = Open3.capture3(shell_command)
