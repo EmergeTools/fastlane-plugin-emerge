@@ -25,12 +25,6 @@ module Fastlane
                       Dir.glob("#{lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]}/Build/Products/Debug-iphonesimulator/*.app").first
                     end
 
-        if file_path.nil? || !File.exist?(file_path)
-          UI.error("Invalid input file")
-          return false
-        end
-        extension = File.extname(file_path)
-
         git_params = Helper::EmergeHelper.make_git_params
         pr_number = params[:pr_number] || git_params.pr_number
         branch = params[:branch] || git_params.branch
@@ -41,6 +35,12 @@ module Fastlane
         tag = params[:tag]
         order_file_version = params[:order_file_version]
         config_path = params[:config_path]
+
+        if file_path.nil? || !File.exist?(file_path)
+          UI.error("Invalid input file")
+          return false
+        end
+        extension = File.extname(file_path)
 
         # If the user provided a .app we will look for dsyms and package it into a zipped xcarchive
         if extension == '.app'
