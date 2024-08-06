@@ -3,6 +3,7 @@
 ## 0.10.4
 
 - Adds extra logging for which `file_path` is chosen.
+- Add better Git support for detached HEAD states.
 
 ## 0.9.0
 
