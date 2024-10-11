@@ -39,6 +39,17 @@ module Fastlane
         end
       end
 
+      def self.previous_sha
+        if is_push?
+          github_event_data.dig(:before)
+        else
+          shell_command = "git rev-parse HEAD^"
+          UI.command(shell_command)
+          stdout, _, status = Open3.capture3(shell_command)
+          stdout.strip if status.success?
+        end
+      end
+
       def self.pr_number
         is_pull_request? ? github_event_data.dig(:number) : nil
       end

@@ -19,6 +19,7 @@ module Fastlane
         branch = params[:branch] || git_params.branch
         sha = params[:sha] || git_params.sha
         base_sha = params[:base_sha] || git_params.base_sha
+        previous_sha = params[:previous_sha] || git_params.previous_sha
         repo_name = params[:repo_name] || git_params.repo_name
         gitlab_project_id = params[:gitlab_project_id]
         tag = params[:tag]
@@ -54,6 +55,7 @@ module Fastlane
             branch: branch,
             sha: sha,
             baseSha: base_sha,
+            previousSha: previous_sha,
             repoName: repo_name,
             gitlabProjectId: gitlab_project_id,
             tag: tag || "default"
@@ -131,6 +133,10 @@ module Fastlane
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :base_sha,
                                        description: "The git SHA of the base build",
+                                       optional: true,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :previous_sha,
+                                       description: "The git SHA of the commit right before this build's commit",
                                        optional: true,
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :repo_name,
