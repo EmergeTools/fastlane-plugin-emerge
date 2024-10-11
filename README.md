@@ -52,12 +52,13 @@ For a full list of available parameters run `fastlane action emerge_snapshot`.
 
 ## Git Configuration
 
-For build comparisons to work, Emerge needs the appropriate Git `sha` and `base_sha` values set on each build. Emerge will automatically compare a build at `sha` against the build we find matching the `base_sha` for a given application id. We also recommend setting `pr_number`, `branch`, and `repo_name` for the best experience.
+For build comparisons to work, Emerge needs the appropriate Git `sha` and `base_sha` values set on each build. Emerge will automatically compare a build at `sha` against the build we find matching the `base_sha` for a given application id. We also recommend setting `pr_number`, `branch`, `repo_name`, and `previous_sha` for the best experience.
 
 For example:
 
-- `sha`: `pr-branch-commit-1`
+- `sha`: `pr-branch-commit-2`
 - `base_sha`: `main-branch-commit-1`
+- `previous_sha`: `pr-branch-commit-1`
 - `pr_number`: `42`
 - `branch`: `my-awesome-feature`
 - `repo_name`: `EmergeTools/hackernews`

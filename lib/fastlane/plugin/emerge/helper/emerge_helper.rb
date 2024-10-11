@@ -5,12 +5,13 @@ module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?("UI")
 
   class GitResult
-    attr_accessor :sha, :base_sha, :branch, :pr_number, :repo_name
+    attr_accessor :sha, :base_sha, :previous_sha, :branch, :pr_number, :repo_name
 
-    def initialize(sha:, base_sha:, branch:, pr_number: nil, repo_name: nil)
+    def initialize(sha:, base_sha:, previous_sha:, branch:, pr_number: nil, repo_name: nil)
       @pr_number = pr_number
       @sha = sha
       @base_sha = base_sha
+      @previous_sha = previous_sha
       @branch = branch
       @repo_name = repo_name
     end
@@ -36,6 +37,7 @@ module Fastlane
                        GitResult.new(
                          sha: Helper::Github.sha,
                          base_sha: Helper::Github.base_sha,
+                         previous_sha: Helper::Github.previous_sha,
                          branch: Helper::Github.branch,
                          pr_number: Helper::Github.pr_number,
                          repo_name: Helper::Github.repo_name
@@ -45,6 +47,7 @@ module Fastlane
                        GitResult.new(
                          sha: Helper::Git.sha,
                          base_sha: Helper::Git.base_sha,
+                         previous_sha: Helper::Git.previous_sha,
                          branch: Helper::Git.branch
                        )
                      end

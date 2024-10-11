@@ -60,6 +60,13 @@ module Fastlane
         stdout.strip == current_sha ? nil : stdout.strip
       end
 
+      def self.previous_sha
+        shell_command = "git rev-parse HEAD^"
+        UI.command(shell_command)
+        stdout, _, status = Open3.capture3(shell_command)
+        stdout.strip if status.success?
+      end
+
       def self.primary_remote
         remote = remote()
         return nil if remote.nil?
