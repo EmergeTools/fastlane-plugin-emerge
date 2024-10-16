@@ -42,8 +42,6 @@ module Fastlane
       def self.previous_sha
         if is_push?
           github_event_data.dig(:before)
-        else
-          github_event_data.dig(:before) || self.base_sha
         end
       end
 
