@@ -16,7 +16,9 @@ fastlane add_plugin emerge
 
 ## Usage
 
-To get started, first obtain an [API token](https://docs.emergetools.com/docs/uploading-basics#obtain-an-api-key) for your organization. The API Token is used to authenticate with the Emerge API in each call. Our actions will automatically pick up the API key if configured as an `EMERGE_API_TOKEN` environment variable.
+### API Token
+
+First obtain an [API token](https://docs.emergetools.com/docs/uploading-basics#obtain-an-api-key) for your organization. The API Token is used to authenticate with the Emerge API in each call. Our actions will automatically pick up the API key if configured as an `EMERGE_API_TOKEN` environment variable.
 
 ### Size Analysis
 
@@ -36,6 +38,16 @@ end
 For a full list of available parameters run `fastlane action emerge`.
 
 ### Snapshot Testing
+
+Emerge Snapshot Testing works by parsing Xcode Previews _from your app binary_. This means the upload to our service needs to include Previews as part of your app code. There are a couple ways to do this:
+
+#### Re-use a unit test build
+
+If you're already running unit tests with fastlane, simply call `emerge()` after your unit tests to automatically upload the unit test build to our service. Our action will automatically detect the build generated for unit tests. In general this build is a Debug build and should have Previews code included.
+
+#### Use our `emerge_snapshot()` action
+
+This will build your app from scratch with our recommended configurations to prevent Previews from being removed, and then upload to our service.
 
 ```ruby
 platform :ios do
