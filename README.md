@@ -43,7 +43,7 @@ Emerge Snapshot Testing works by parsing Xcode Previews _from your app binary_. 
 
 #### Re-use a unit test build
 
-If you're already running unit tests with fastlane, simply call `emerge()` after your unit tests to automatically upload the unit test build to our service. Our action will automatically detect the build generated for unit tests. In general this build is a Debug build and should have Previews code included.
+If you're already running unit tests with fastlane, simply call `emerge()` after your unit tests to automatically upload the unit test build to our service. Our `emerge` action will automatically detect the build generated for unit tests, or you can explicitly set the `file_path` param. In general this build is a Debug build and should have Previews code included.
 
 #### Use our `emerge_snapshot()` action
 
