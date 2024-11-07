@@ -16,7 +16,9 @@ fastlane add_plugin emerge
 
 ## Usage
 
-To get started, first obtain an [API token](https://docs.emergetools.com/docs/uploading-basics#obtain-an-api-key) for your organization. The API Token is used to authenticate with the Emerge API in each call. Our actions will automatically pick up the API key if configured as an `EMERGE_API_TOKEN` environment variable.
+### API Token
+
+First obtain an [API token](https://docs.emergetools.com/docs/uploading-basics#obtain-an-api-key) for your organization. The API Token is used to authenticate with the Emerge API in each call. Our actions will automatically pick up the API key if configured as an `EMERGE_API_TOKEN` environment variable.
 
 ### Size Analysis
 
@@ -37,12 +39,22 @@ For a full list of available parameters run `fastlane action emerge`.
 
 ### Snapshot Testing
 
+Emerge Snapshot Testing works by parsing Xcode Previews _from the app binary_. This means the upload to Emerge's service needs to include Previews as part of the app code. There are a couple ways to do this:
+
+#### Re-use a unit test build with the `emerge()` action
+
+If you're already running unit tests with fastlane, simply call the `emerge()` action after running unit tests to automatically upload the unit test build to Emerge. The action will detect the build generated for unit tests, or the `file_path` param can be explicitly set. Generally this build is a Debug build and should have Previews code included.
+
+#### Generate a new build with the `emerge_snapshot()` action
+
+This will build the app from scratch with recommended configurations to prevent Previews from being removed/stripped, and then upload the built app to Emerge.
+
 ```ruby
 platform :ios do
   lane :snapshot_testing do
-    # Call our `emerge_snapshot()` action with the respective scheme for
+    # Call the `emerge_snapshot()` action with the respective scheme for
     # us to build. We will generate a build with the recommended settings
-    # and upload to our API.
+    # and upload to Emerge's API.
     emerge_snapshot(scheme: 'Hacker News')
   end
 end
