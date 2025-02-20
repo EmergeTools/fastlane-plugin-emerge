@@ -37,8 +37,10 @@ module Fastlane
         order_file_version = params[:order_file_version]
         config_path = params[:config_path]
 
-        if file_path.nil? || !File.exist?(file_path)
-          UI.error("Invalid input file")
+        if file_path.nil?
+          UI.error("No input file was provided, make sure it is set in the action")
+        elsif !File.exist?(file_path)
+          UI.error("No file exists at #{file_path}")
           return false
         else
           UI.message("Using file_path: #{file_path}")
@@ -97,7 +99,7 @@ module Fastlane
         elsif (extension == '.zip' || extension == '.ipa') && params[:linkmaps] && params[:linkmaps].length > 0
           UI.error("Provided #{extension == '.zip' ? 'zipped archive' : 'ipa'} and linkmaps, linkmaps will not be added to upload.")
         elsif extension != '.zip' && extension != '.ipa'
-          UI.error("Invalid input file")
+          UI.error("Invalid input file extension: #{extension}")
           return false
         end
 
