@@ -1,5 +1,6 @@
 require 'fastlane_core/ui/ui'
-require 'faraday'
+require 'net/http'
+require 'uri'
 
 module Fastlane
   UI = FastlaneCore::UI unless Fastlane.const_defined?("UI")
@@ -118,19 +119,26 @@ module Fastlane
           UI.important(warning)
         end
 
-        UI.message('Starting zip file upload')
-        upload_file(api_token, upload_url, file_path)
+        UI.message("Starting zip file upload with size: #{File.size(file_path)}")
+        begin
+          upload_file(api_token, upload_url, file_path)
+        rescue StandardError => e
+          UI.error("Error uploading: #{e.message}")
+          throw e
+        end
         upload_id
       end
 
       def self.upload_file(api_token, upload_url, file_path)
-        response = Faraday.put(upload_url) do |req|
-          req.headers = headers(api_token, nil, 'application/zip')
-          req.headers['Content-Length'] = File.size(file_path).to_s
-          req.body = Faraday::UploadIO.new(file_path, 'application/zip')
-        end
-
-        raise "Uploading zip file failed #{response.status}" unless response.status == 200
+        url = URI.parse(upload_url)
+        http = Net::HTTP.new(url.host, url.port)
+        http.use_ssl = true
+        request = Net::HTTP::Put.new(url)
+        request.body = File.open(file_path, "rb").read
+        request["Content-Type"] = "application/zip"
+        request["Content-Length"] = File.size(file_path).to_s
+        response = http.request(request)
+        raise "Uploading zip file failed #{response.code}" unless response.code == '200'
       end
     end
   end
