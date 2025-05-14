@@ -114,7 +114,8 @@ module Fastlane
           orderFileVersion: order_file_version,
           appIdSuffix: params[:app_id_suffix],
           releaseNotes: params[:release_notes],
-          tag: tag || "default"
+          tag: tag || "default",
+          buildDir: params[:build_dir]
         }
         upload_id = Helper::EmergeHelper.perform_upload(api_token, params, file_path)
         UI.success("🎉 Your app is processing, you can find the results at https://emergetools.com/build/#{upload_id}")
@@ -216,6 +217,10 @@ module Fastlane
                                        type: String),
           FastlaneCore::ConfigItem.new(key: :release_notes,
                                        description: "A markdown string with release notes for the upload",
+                                       optional: true,
+                                       type: String),
+          FastlaneCore::ConfigItem.new(key: :build_dir,
+                                       description: "The directory used to build the app",
                                        optional: true,
                                        type: String)
         ]
