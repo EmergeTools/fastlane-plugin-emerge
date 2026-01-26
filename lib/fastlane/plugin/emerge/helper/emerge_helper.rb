@@ -20,6 +20,8 @@ module Fastlane
   module Helper
     class EmergeHelper
       API_URL = 'https://api.emergetools.com/upload'.freeze
+      NETWORK_TIMEOUT = 450  # seconds, slightly under backend's 480s
+      OPEN_TIMEOUT = 30      # seconds for connection establishment
 
       def self.perform_upload(api_token, params, file_path)
         cleaned_params = clean_params(params)
@@ -70,6 +72,13 @@ module Fastlane
 
       private_class_method
 
+      def self.faraday_connection
+        Faraday.new do |f|
+          f.options.timeout = NETWORK_TIMEOUT
+          f.options.open_timeout = OPEN_TIMEOUT
+        end
+      end
+
       def self.clean_params(params)
         params.reject { |_, v| v.nil? }
       end
@@ -83,7 +92,7 @@ module Fastlane
       end
 
       def self.create_upload(api_token, params)
-        response = Faraday.post(API_URL, params.to_json, headers(api_token, params, 'application/json'))
+        response = faraday_connection.post(API_URL, params.to_json, headers(api_token, params, 'application/json'))
         parse_response(response)
       end
 
@@ -124,7 +133,7 @@ module Fastlane
       end
 
       def self.upload_file(api_token, upload_url, file_path)
-        response = Faraday.put(upload_url) do |req|
+        response = faraday_connection.put(upload_url) do |req|
           req.headers = headers(api_token, nil, 'application/zip')
           req.headers['Content-Length'] = File.size(file_path).to_s
           req.body = Faraday::UploadIO.new(file_path, 'application/zip')
