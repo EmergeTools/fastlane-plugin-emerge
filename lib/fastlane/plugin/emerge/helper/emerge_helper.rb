@@ -127,7 +127,7 @@ module Fastlane
         response = Faraday.put(upload_url) do |req|
           req.headers = headers(api_token, nil, 'application/zip')
           req.headers['Content-Length'] = File.size(file_path).to_s
-          req.body = Faraday::UploadIO.new(file_path, 'application/zip')
+          req.body = File.binread(file_path)
         end
 
         raise "Uploading zip file failed #{response.status}" unless response.status == 200
