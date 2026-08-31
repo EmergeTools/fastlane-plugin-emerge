@@ -15,11 +15,11 @@ Metrics/BlockLength:
   Enabled: false
 Metrics/ModuleLength:
   Enabled: false
-Style/VariableNumber:
+Naming/VariableNumber:
   Enabled: false
 Style/MissingRespondToMissing:
   Enabled: false
-MultilineBlockChain:
+Style/MultilineBlockChain:
   Enabled: false
 Style/NumericLiteralPrefix:
   Enabled: false
@@ -76,7 +76,7 @@ Style/AndOr:
   EnforcedStyle: conditionals
 Metrics/ClassLength:
   Max: 320
-Metrics/LineLength:
+Layout/LineLength:
   Max: 370
 Metrics/ParameterLists:
   Max: 17
@@ -95,7 +95,7 @@ Lint/UnusedMethodArgument:
 Lint/ParenthesesAsGroupedExpression:
   Exclude:
   - "**/spec/**/*"
-Style/PredicateName:
+Naming/PredicatePrefix:
   Enabled: false
 Style/PerlBackrefs:
   Enabled: false
@@ -103,7 +103,9 @@ Layout/SpaceAroundOperators:
   Exclude:
   - "**/spec/actions_specs/xcodebuild_spec.rb"
 AllCops:
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 3.0
+  NewCops: disable
+  SuggestExtensions: false
   Include:
   - "*/lib/assets/*Template"
   - "*/lib/assets/*TemplateAndroid"
@@ -113,7 +115,7 @@ AllCops:
   - "**/lib/assets/DefaultFastfileTemplate"
   - "**/lib/assets/MatchfileTemplate"
   - "**/spec/fixtures/broken_files/broken_file.rb"
-Style/FileName:
+Naming/FileName:
   Exclude:
   - "**/Dangerfile"
   - "**/Brewfile"
@@ -136,7 +138,7 @@ Style/CollectionMethods:
   Enabled: false
 Style/MethodCallWithArgsParentheses:
   Enabled: true
-  IgnoredMethods:
+  AllowedMethods:
   - require
   - require_relative
   - fastlane_require
