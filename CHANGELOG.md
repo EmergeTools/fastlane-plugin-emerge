@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.0
+
+- Upgrade Faraday to `>= 2.14.1, < 3.0`.
+- Stream archive uploads to avoid loading the entire file into memory.
+- Require Ruby 3.0 or newer.
+
 ## 0.10.4
 
 - Adds extra logging for which `file_path` is chosen.
